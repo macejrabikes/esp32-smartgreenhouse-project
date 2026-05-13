@@ -5,321 +5,791 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Smart Skleník</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:         #050705;    /* Takmer úplná čierna */
-  --surface:    #0a0f0b;    /* Veľmi tmavá zelená pre panely */
-  --surface2:   #121a13;
-  --border:     #1a261c;
-  --border-hi:  #2d4030;
-  --text:       #a0b0a0;    /* Mierne tlmená biela/zelená */
-  --text-hi:    #e0f0e0;
-  --green:      #2d5c3a;    /* Tmavšia funkčná zelená */
-  --green-hi:   #4ade80;    /* Jasná zelená pre akcenty */
-  --red:        #7f1d1d;
-  --red-hi:     #ef4444;
-  --radius:     2px;        /* Ostrejšie rohy pre tech vzhľad */
+  --bg:        #050705;
+  --bg2:       #080c08;
+  --surface:   #0a0f0a;
+  --surface2:  #0e150e;
+  --surface3:  #121a12;
+  --border:    #141f14;
+  --border2:   #1a2a1a;
+  --border3:   #223022;
+
+  --text:      #c8e0c0;
+  --text-hi:   #e0f4dc;
+  --muted:     #6a8a68;
+  --faint:     #3a5038;
+
+  --g0:        #0f1f10;
+  --g1:        #1a3d1c;
+  --g2:        #2d6b30;
+  --g3:        #3d8f40;
+  --g4:        #52b857;
+  --g5:        #70d476;
+
+  --amber:     #b8864a;
+  --amber-hi:  #d4a060;
+  --red:       #7a3838;
+  --red-hi:    #c05050;
+  --blue:      #3a5a7a;
+  --blue-hi:   #5080a8;
+  --teal:      #2d6a60;
+
+  --radius:    2px;
+  --radius-lg: 4px;
+
+  --font-mono: 'JetBrains Mono', 'Space Mono', monospace;
 }
+
+html { scroll-behavior: smooth; }
 
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'DM Mono', monospace; /* Iba monospace */
-  font-size: 13px;
-  line-height: 1.6;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,255,0,0.008) 2px,
+    rgba(0,255,0,0.008) 4px
+  );
 }
 
-/* Jemný scanline efekt pre tech feeling */
-body::after {
-  content: "";
+body::before {
+  content: '';
   position: fixed;
-  inset: 0;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
-              linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
-  background-size: 100% 4px, 3px 100%;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--g2) 40%, var(--g3) 50%, var(--g2) 60%, transparent 100%);
+  z-index: 100;
+  opacity: 0.6;
+}
+body::after {
+  content: '';
+  position: fixed;
+  top: -300px; left: 50%;
+  transform: translateX(-50%);
+  width: 600px; height: 400px;
+  background: radial-gradient(ellipse, rgba(30,70,30,0.12) 0%, transparent 70%);
   pointer-events: none;
-  z-index: 10;
+  z-index: 0;
 }
 
 .shell {
-  max-width: 1400px; /* Širší layout */
+  max-width: 1120px;
   margin: 0 auto;
-  padding: 40px;
+  padding: 0 24px 80px;
+  position: relative;
+  z-index: 1;
 }
 
-/* ── HEADER ── */
+/* HEADER */
 header {
   display: flex;
+  align-items: stretch;
   justify-content: space-between;
-  align-items: center;
+  padding: 20px 0 0;
   margin-bottom: 40px;
-  padding-bottom: 20px;
-  border-bottom: 2px solid var(--border);
+  gap: 16px;
+  flex-wrap: wrap;
 }
-
-.brand-name {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--green-hi);
+.brand {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 4px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border2);
+  flex: 1;
+}
+.brand-eyebrow {
+  font-size: 9px;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  color: var(--g3);
 }
-
+.brand-name {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--g5);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  text-shadow: 0 0 40px rgba(80,200,90,0.2);
+}
+.brand-sub {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+.header-right {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+  gap: 8px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border2);
+}
 .status-pill {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 4px 12px;
+  gap: 7px;
+  padding: 5px 12px 5px 8px;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
   background: var(--surface);
-  border: 1px solid var(--border);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
+.pulse {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--red);
+  flex-shrink: 0;
+}
+.pulse.online {
+  background: var(--g4);
+  box-shadow: 0 0 0 2px rgba(82,184,87,0.15);
+  animation: beat 2.5s ease infinite;
+}
+@keyframes beat {
+  0%,100% { box-shadow: 0 0 0 2px rgba(82,184,87,0.15); }
+  50%      { box-shadow: 0 0 0 6px rgba(82,184,87,0.0); }
+}
+#last-seen {
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
 }
 
-/* ── SENSOR GRID ── */
+/* SECTION LABEL */
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  margin-top: 32px;
+}
+.section-label-text {
+  font-size: 8px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--g4);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.section-label-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border2);
+}
+.section-label-tag {
+  font-size: 8px;
+  letter-spacing: 0.15em;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  padding: 2px 7px;
+  border-radius: var(--radius);
+}
+
+/* SENSOR STRIP */
 .sensor-strip {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  margin-bottom: 20px;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 16px;
 }
-
 .sensor-cell {
   background: var(--surface);
-  border: 1px solid var(--border);
-  padding: 20px;
+  padding: 20px 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-right: 1px solid var(--border2);
   position: relative;
+  transition: background 0.15s;
 }
+.sensor-cell:last-child { border-right: none; }
+.sensor-cell:hover { background: var(--surface2); }
+.sensor-cell::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+}
+.sensor-cell.c-soil::before   { background: var(--g3); }
+.sensor-cell.c-temp::before   { background: var(--amber); }
+.sensor-cell.c-hum::before    { background: var(--blue-hi); }
+.sensor-cell.c-water::before  { background: var(--teal); }
 
 .sensor-label {
-  font-size: 10px;
-  color: var(--green-hi);
-  margin-bottom: 10px;
+  font-size: 8px;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
+  color: var(--muted);
 }
-
 .sensor-value {
-  font-size: 32px;
-  font-weight: bold;
+  font-size: 36px;
+  font-weight: 300;
   color: var(--text-hi);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
 }
+.thin-bar {
+  height: 2px;
+  background: var(--border2);
+  border-radius: 1px;
+  overflow: hidden;
+}
+.thin-bar-fill {
+  height: 100%;
+  border-radius: 1px;
+  transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+}
+.c-soil  .thin-bar-fill { background: var(--g3); }
+.c-temp  .thin-bar-fill { background: var(--amber); }
+.c-hum   .thin-bar-fill { background: var(--blue-hi); }
+.c-water .thin-bar-fill { background: var(--teal); }
 
-/* ── LAYOUT 2-COL ── */
-.main-grid {
+/* TWO-COL */
+.two-col {
   display: grid;
-  grid-template-columns: 1fr 350px;
-  gap: 20px;
+  grid-template-columns: 1fr 300px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
-
-.panel {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  margin-bottom: 20px;
-}
-
-.panel-head {
-  padding: 10px 15px;
-  background: var(--surface2);
-  border-bottom: 1px solid var(--border);
-  font-size: 11px;
-  color: var(--green-hi);
-}
-
-.panel-body { padding: 20px; }
-
-/* ── CHART ── */
-.chart-wrap { height: 350px; } /* Vyšší graf */
-
-/* ── BUTTONS & CONTROLS ── */
-.controls-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1px;
-  background: var(--border);
-}
-
-.ctrl { background: var(--surface); padding: 15px; }
-
-.btn {
-  flex: 1;
-  padding: 8px;
-  background: transparent;
-  border: 1px solid var(--border-hi);
-  color: var(--text);
-  font-family: inherit;
-  cursor: pointer;
-  transition: all 0.1s;
-}
-
-.btn.on { background: var(--green); color: white; border-color: var(--green-hi); }
-.btn.off { background: var(--red); color: white; border-color: var(--red-hi); }
-.btn:active { transform: scale(0.98); }
-
-input[type=range] {
-  width: 100%;
-  accent-color: var(--green-hi);
-}
-
-.log-list { font-size: 11px; max-height: 400px; overflow-y: auto; }
-.log-row { border-bottom: 1px solid var(--border); padding: 5px 0; }
-.log-t { color: var(--green-hi); margin-right: 10px; }
-
-@media (max-width: 1000px) {
-  .main-grid { grid-template-columns: 1fr; }
+@media (max-width: 800px) {
+  .two-col { grid-template-columns: 1fr; }
   .sensor-strip { grid-template-columns: repeat(2, 1fr); }
 }
-</style>
+
+/* PANEL */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.panel-head {
+  padding: 10px 16px 9px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.panel-title {
+  font-size: 8px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 500;
+}
+.panel-tag {
+  font-size: 8px;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
+.panel-body { padding: 16px; }
+
+/* CHART */
+.chart-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+}
+.legend-dot {
+  width: 8px; height: 2px;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+.chart-wrap { height: 180px; position: relative; }
+canvas { width: 100% !important; }
+
+/* LOG */
+.log-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 200px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border2) transparent;
+}
+.log-row {
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(20,31,20,0.8);
+}
+.log-row:last-child { border: none; }
+.log-t { font-size: 9px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.log-m { font-size: 10px; color: var(--text); }
+
+/* CONTROLS — separate cards row */
+.ctrl-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+@media (max-width: 900px) { .ctrl-row { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 520px)  { .ctrl-row { grid-template-columns: 1fr; } }
+
+.ctrl-card {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* coloured top stripe per device */
+.ctrl-card.c-pump  { border-top: 2px solid var(--teal); }
+.ctrl-card.c-fan   { border-top: 2px solid var(--blue-hi); }
+.ctrl-card.c-led   { border-top: 2px solid var(--g3); }
+.ctrl-card.c-auto  { border-top: 2px solid var(--amber); }
+
+.ctrl-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.ctrl-label {
+  font-size: 8px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 500;
+}
+.ctrl-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--border2);
+  border: 1px solid var(--border3);
+  transition: all 0.2s;
+}
+.ctrl-dot.on {
+  background: var(--g4);
+  border-color: var(--g3);
+  box-shadow: 0 0 6px rgba(82,184,87,0.4);
+}
+.ctrl-card-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+/* TOGGLE BUTTONS */
+.toggle-row {
+  display: flex;
+  gap: 1px;
+  background: var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border2);
+}
+.btn {
+  flex: 1;
+  padding: 7px 10px;
+  border: none;
+  background: var(--bg2);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  cursor: pointer;
+  transition: background 0.08s, color 0.08s;
+  letter-spacing: 0.05em;
+  font-weight: 400;
+  white-space: nowrap;
+  text-align: center;
+}
+.btn:hover { background: var(--surface2); color: var(--text); }
+.btn:active { transform: translateY(1px); }
+.btn.on {
+  background: rgba(29,80,32,0.5);
+  color: var(--g5);
+  font-weight: 500;
+}
+.btn.off {
+  background: rgba(100,30,30,0.3);
+  color: var(--red-hi);
+}
+
+/* SLIDERS */
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.slider-lbl {
+  font-size: 8px;
+  color: var(--muted);
+  white-space: nowrap;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  min-width: 28px;
+}
+.slider-val {
+  font-size: 10px;
+  color: var(--muted);
+  min-width: 30px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+input[type=range] {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 2px;
+  background: var(--border2);
+  border-radius: 1px;
+  outline: none;
+  cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--g3);
+  cursor: pointer;
+  border: 1px solid var(--bg);
+  box-shadow: 0 0 0 1px var(--g2);
+  transition: box-shadow 0.15s;
+}
+input[type=range]::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 0 3px rgba(61,143,64,0.2);
+}
+
+/* SWATCHES */
+.swatch-row { display: flex; gap: 4px; flex-wrap: wrap; }
+.swatch {
+  width: 18px; height: 18px;
+  border-radius: 2px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.12s;
+  opacity: 0.7;
+}
+.swatch:hover, .swatch.sel { border-color: var(--text); opacity: 1; transform: scale(1.1); }
+
+/* CTRL NOTE */
+.ctrl-note {
+  font-size: 8px;
+  color: var(--muted);
+  line-height: 1.7;
+  letter-spacing: 0.03em;
+}
+
+.active-section-accent {
+  height: 1px;
+  background: linear-gradient(90deg, var(--g1) 0%, var(--g2) 30%, transparent 100%);
+}
+
+@media (max-width: 520px) {
+  .shell { padding: 0 14px 60px; }
+  .sensor-value { font-size: 28px; }
+}
 </style>
 </head>
 <body>
 <div class="shell">
 
-  <header>
-    <div class="brand">
-      <div class="brand-name">Skleník_OS v1.0</div>
-    </div>
-    <div class="header-right">
-      <div class="status-pill">
-        <div class="pulse" id="status-dot"></div>
-        <span id="status-txt">SYSTEM_OFFLINE</span>
-        <span id="last-seen" style="margin-left: 10px; opacity: 0.5;"></span>
-      </div>
-    </div>
-  </header>
-
-  <div class="sensor-strip">
-    <div class="sensor-cell">
-      <div class="sensor-label">Soil_Moisture</div>
-      <div class="sensor-value" id="val-soil">--%</div>
-    </div>
-    <div class="sensor-cell">
-      <div class="sensor-label">Air_Temp</div>
-      <div class="sensor-value" id="val-temp">--°C</div>
-    </div>
-    <div class="sensor-cell">
-      <div class="sensor-label">Air_Humidity</div>
-      <div class="sensor-value" id="val-hum">--%</div>
-    </div>
-    <div class="sensor-cell">
-      <div class="sensor-label">Water_Level</div>
-      <div class="sensor-value" id="val-water">--%</div>
+<header>
+  <div class="brand">
+    <div class="brand-eyebrow">/ / greenhouse control</div>
+    <div class="brand-name">SMART SKLENÍK</div>
+    <div class="brand-sub">ESP32 · HiveMQ · FastAPI</div>
+  </div>
+  <div class="header-right">
+    <span id="last-seen">–</span>
+    <div class="status-pill">
+      <div class="pulse" id="status-dot"></div>
+      <span id="status-txt">offline</span>
     </div>
   </div>
+</header>
 
-  <div class="main-grid">
-    <div class="content-left">
-      <div class="panel">
-        <div class="panel-head">HISTORICAL_DATA_STREAM</div>
-        <div class="panel-body">
-          <div class="chart-wrap">
-            <canvas id="chart"></canvas>
-          </div>
-        </div>
+<!-- SENSOR SECTION -->
+<div class="section-label" style="margin-top:0">
+  <span class="section-label-text">Senzory</span>
+  <div class="section-label-line"></div>
+  <span class="section-label-tag">live · 3s</span>
+</div>
+
+<div class="sensor-strip">
+  <div class="sensor-cell c-soil">
+    <div class="sensor-label">vlhkost pudy</div>
+    <div class="sensor-value" id="val-soil">—</div>
+    <div class="thin-bar"><div class="thin-bar-fill" id="bar-soil" style="width:0%"></div></div>
+  </div>
+  <div class="sensor-cell c-temp">
+    <div class="sensor-label">teplota</div>
+    <div class="sensor-value" id="val-temp">—</div>
+    <div class="thin-bar"><div class="thin-bar-fill" id="bar-temp" style="width:0%"></div></div>
+  </div>
+  <div class="sensor-cell c-hum">
+    <div class="sensor-label">vlhkost vzduchu</div>
+    <div class="sensor-value" id="val-hum">—</div>
+    <div class="thin-bar"><div class="thin-bar-fill" id="bar-hum" style="width:0%"></div></div>
+  </div>
+  <div class="sensor-cell c-water">
+    <div class="sensor-label">hladina vody</div>
+    <div class="sensor-value" id="val-water">—</div>
+    <div class="thin-bar"><div class="thin-bar-fill" id="bar-water" style="width:0%"></div></div>
+  </div>
+</div>
+
+<!-- CHART + LOG -->
+<div class="two-col">
+  <div class="panel">
+    <div class="panel-head">
+      <span class="panel-title">Historia</span>
+      <span class="panel-tag">posl. 30 merani</span>
+    </div>
+    <div class="panel-body">
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#52b857"></div>vlhkost pudy</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#b8864a"></div>teplota</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#5080a8"></div>vlhkost vzduchu</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#2d6a60"></div>hladina vody</div>
       </div>
-
-      <div class="panel">
-        <div class="panel-head">SYSTEM_CONTROLS</div>
-        <div class="controls-grid">
-           <div class="ctrl">
-             <div class="sensor-label">Pump_Module</div>
-             <div class="toggle-row" style="display:flex; gap:5px; margin-bottom:10px;">
-               <button class="btn" id="btn-pump-on" onclick="cmdPump(true)">START</button>
-               <button class="btn" id="btn-pump-off" onclick="cmdPump(false)">STOP</button>
-             </div>
-             <input type="range" min="10" max="100" value="100" id="pump-speed-slider">
-           </div>
-           <div class="ctrl">
-             <div class="sensor-label">Fan_Module</div>
-             <div class="toggle-row" style="display:flex; gap:5px; margin-bottom:10px;">
-               <button class="btn" id="btn-fan-on" onclick="cmdFan(true)">START</button>
-               <button class="btn" id="btn-fan-off" onclick="cmdFan(false)">STOP</button>
-             </div>
-             <input type="range" min="10" max="100" value="80" id="fan-speed-slider">
-           </div>
-           <div class="ctrl">
-              <div class="sensor-label">Light_Array</div>
-              <div class="toggle-row" style="display:flex; gap:5px; margin-bottom:10px;">
-                <button class="btn" id="btn-led-on" onclick="cmdLed(true,0,150,80)">ON</button>
-                <button class="btn" id="btn-led-off" onclick="cmdLed(false,0,0,0)">OFF</button>
-              </div>
-              <input type="range" min="5" max="30" value="20" id="brightness-slider">
-           </div>
-           <div class="ctrl">
-              <div class="sensor-label">Logic_Auto</div>
-              <div class="toggle-row" style="display:flex; gap:5px;">
-                <button class="btn" id="btn-auto-on" onclick="cmdAuto(true)">ENABLE</button>
-                <button class="btn" id="btn-auto-off" onclick="cmdAuto(false)">DISABLE</button>
-              </div>
-           </div>
-        </div>
+      <div class="chart-wrap">
+        <canvas id="chart"></canvas>
       </div>
     </div>
-
-    <div class="content-right">
-      <div class="panel">
-        <div class="panel-head">EVENT_LOG</div>
-        <div class="panel-body">
-          <div class="log-list" id="log-list">
-            <div class="log-row">Initializing...</div>
-          </div>
+  </div>
+  <div class="panel">
+    <div class="panel-head">
+      <span class="panel-title">Log udalosti</span>
+    </div>
+    <div class="panel-body" style="padding:12px 16px">
+      <div class="log-list" id="log-list">
+        <div class="log-row">
+          <span class="log-t">–</span>
+          <span class="log-m">cakam na ESP32...</span>
         </div>
       </div>
     </div>
   </div>
+</div>
+
+<!-- ACTIVE SECTION -->
+<div class="section-label" style="margin-top:36px">
+  <span class="section-label-text">Ovladanie</span>
+  <div class="section-label-line"></div>
+  <span class="section-label-tag">aktuatory</span>
+</div>
+<div class="active-section-accent" style="margin-bottom:12px"></div>
+
+<div class="ctrl-row">
+
+  <!-- Pump -->
+  <div class="ctrl-card c-pump">
+    <div class="ctrl-card-head">
+      <div class="ctrl-label">Cerpadlo</div>
+      <div class="ctrl-dot" id="dot-pump"></div>
+    </div>
+    <div class="ctrl-card-body">
+      <div class="toggle-row">
+        <button class="btn" id="btn-pump-on"  onclick="cmdPump(true)">ZAP</button>
+        <button class="btn" id="btn-pump-off" onclick="cmdPump(false)">VYP</button>
+      </div>
+      <div class="slider-row">
+        <span class="slider-lbl">vykon</span>
+        <input type="range" min="10" max="100" value="100" id="pump-speed-slider">
+        <span class="slider-val" id="pump-spd-val">100%</span>
+      </div>
+      <div class="ctrl-note">Ak bezi ventilator, prikaz bude odmietnuty</div>
+    </div>
+  </div>
+
+  <!-- Fan -->
+  <div class="ctrl-card c-fan">
+    <div class="ctrl-card-head">
+      <div class="ctrl-label">Ventilator</div>
+      <div class="ctrl-dot" id="dot-fan"></div>
+    </div>
+    <div class="ctrl-card-body">
+      <div class="toggle-row">
+        <button class="btn" id="btn-fan-on"  onclick="cmdFan(true)">ZAP</button>
+        <button class="btn" id="btn-fan-off" onclick="cmdFan(false)">VYP</button>
+      </div>
+      <div class="slider-row">
+        <span class="slider-lbl">rychlost</span>
+        <input type="range" min="10" max="100" value="80" id="fan-speed-slider">
+        <span class="slider-val" id="fan-spd-val">80%</span>
+      </div>
+      <div class="ctrl-note">Ak bezi cerpadlo, prikaz bude odmietnuty</div>
+    </div>
+  </div>
+
+  <!-- LED -->
+  <div class="ctrl-card c-led">
+    <div class="ctrl-card-head">
+      <div class="ctrl-label">RGB pasik</div>
+      <div class="ctrl-dot" id="dot-led"></div>
+    </div>
+    <div class="ctrl-card-body">
+      <div class="toggle-row">
+        <button class="btn" id="btn-led-on"  onclick="cmdLed(true,  0,150,80)">ZAP</button>
+        <button class="btn" id="btn-led-off" onclick="cmdLed(false, 0,  0, 0)">VYP</button>
+      </div>
+      <div class="swatch-row">
+        <div class="swatch" style="background:#3d8f40" onclick="cmdLed(true,0,140,92)"    title="Zelena"></div>
+        <div class="swatch" style="background:#3a5a7a" onclick="cmdLed(true,59,130,246)"  title="Modra"></div>
+        <div class="swatch" style="background:#b8864a" onclick="cmdLed(true,245,158,11)"  title="Jantarova"></div>
+        <div class="swatch" style="background:#7a3838" onclick="cmdLed(true,239,68,68)"   title="Cervena"></div>
+        <div class="swatch" style="background:#5a4878" onclick="cmdLed(true,139,92,246)"  title="Fialova"></div>
+        <div class="swatch" style="background:#2d6a60" onclick="cmdLed(true,20,184,166)"  title="Tyrkysova"></div>
+        <div class="swatch" style="background:#607060" onclick="cmdLed(true,180,200,180)" title="Eco-biela"></div>
+      </div>
+      <div class="slider-row">
+        <span class="slider-lbl">jas</span>
+        <input type="range" min="5" max="30" value="20" id="brightness-slider">
+        <span class="slider-val" id="br-val">20%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Auto -->
+  <div class="ctrl-card c-auto">
+    <div class="ctrl-card-head">
+      <div class="ctrl-label">Auto-rezim</div>
+      <div class="ctrl-dot" id="dot-auto"></div>
+    </div>
+    <div class="ctrl-card-body">
+      <div class="toggle-row">
+        <button class="btn" id="btn-auto-on"  onclick="cmdAuto(true)">ZAP</button>
+        <button class="btn" id="btn-auto-off" onclick="cmdAuto(false)">VYP</button>
+      </div>
+      <div class="ctrl-note" style="line-height:1.9">
+        ESP32 automaticky zaleje ak je poda sucha a spusti ventilator nad 28 C
+      </div>
+    </div>
+  </div>
+
+</div><!-- /ctrl-row -->
 
 </div><!-- /shell -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
-// Nastav tu URL svojho Azure App Service po deployi:
-// napr. 'https://smart-sklenik.azurewebsites.net'
-// Prázdny reťazec = ten istý server (funguje keď sa servuje z FastAPI)
 const API = '';
 
-// ── Chart ──
+const sliderTimers = {};
+function sliderChanged(sliderId, valId, unit, sendFn) {
+  const el = document.getElementById(sliderId);
+  const val = el.value;
+  document.getElementById(valId).textContent = val + unit;
+  clearTimeout(sliderTimers[sliderId]);
+  sliderTimers[sliderId] = setTimeout(() => sendFn(parseInt(val)), 400);
+}
+
+document.getElementById('pump-speed-slider').addEventListener('input', function() {
+  sliderChanged('pump-speed-slider', 'pump-spd-val', '%', (v) => {
+    fetch(API + '/api/pump?on=true&speed=' + v, { method: 'POST' }).catch(()=>{});
+  });
+});
+document.getElementById('fan-speed-slider').addEventListener('input', function() {
+  sliderChanged('fan-speed-slider', 'fan-spd-val', '%', (v) => {
+    fetch(API + '/api/fan?on=true&speed=' + v, { method: 'POST' }).catch(()=>{});
+  });
+});
+document.getElementById('brightness-slider').addEventListener('input', function() {
+  sliderChanged('brightness-slider', 'br-val', '%', (v) => {
+    const lc = window._lastLedColor || {r:0,g:150,b:80};
+    fetch(API + '/api/led?on=true&r='+lc.r+'&g='+lc.g+'&b='+lc.b+'&brightness='+v, { method: 'POST' }).catch(()=>{});
+  });
+});
+
 const chart = new Chart(document.getElementById('chart').getContext('2d'), {
   type: 'line',
   data: {
     labels: [],
     datasets: [
-      { label: 'Temp (°C)', data: [], borderColor: '#ef4444', tension: 0.3, pointRadius: 0, borderWidth: 2 },
-      { label: 'Soil (%)', data: [], borderColor: '#4ade80', tension: 0.3, pointRadius: 0, borderWidth: 2 },
-      { label: 'Hum (%)', data: [], borderColor: '#3b82f6', tension: 0.3, pointRadius: 0, borderWidth: 2 },
-      { label: 'Water (%)', data: [], borderColor: '#f59e0b', tension: 0.3, pointRadius: 0, borderWidth: 2 }
+      { label: 'Vlhkost pudy (%)', data: [], borderColor: '#52b857', backgroundColor: 'rgba(82,184,87,0.04)', tension: 0.4, pointRadius: 0, borderWidth: 1.5, yAxisID: 'y' },
+      { label: 'Teplota (C)',      data: [], borderColor: '#b8864a', backgroundColor: 'rgba(184,134,74,0.04)', tension: 0.4, pointRadius: 0, borderWidth: 1.5, yAxisID: 'y' },
+      { label: 'Vlhkost vzduchu (%)', data: [], borderColor: '#5080a8', backgroundColor: 'rgba(80,128,168,0.04)', tension: 0.4, pointRadius: 0, borderWidth: 1.5, yAxisID: 'y' },
+      { label: 'Hladina vody (%)', data: [], borderColor: '#2d6a60', backgroundColor: 'rgba(45,106,96,0.04)',  tension: 0.4, pointRadius: 0, borderWidth: 1.5, yAxisID: 'y' },
     ]
   },
   options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { labels: { color: '#a0b0a0', font: { family: 'DM Mono' } } } },
+    responsive: true, maintainAspectRatio: false, animation: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#0a0f0a',
+        borderColor: '#1a2a1a',
+        borderWidth: 1,
+        titleColor: '#6a8a68',
+        bodyColor: '#c8e0c0',
+        titleFont: { family: 'JetBrains Mono', size: 9 },
+        bodyFont: { family: 'JetBrains Mono', size: 10 },
+      }
+    },
     scales: {
-      x: { grid: { color: '#1a261c' }, ticks: { color: '#555' } },
-      y: { grid: { color: '#1a261c' }, ticks: { color: '#555' } }
+      x: { ticks: { color: '#3a5038', maxTicksLimit: 6, font: { size: 8, family: 'JetBrains Mono' } }, grid: { color: 'rgba(20,31,20,0.8)' }, border: { color: 'transparent' } },
+      y: { ticks: { color: '#3a5038', font: { size: 8, family: 'JetBrains Mono' } }, grid: { color: 'rgba(20,31,20,0.8)' }, border: { color: 'transparent' } }
     }
   }
 });
 
-// ── UI update ──
+function set(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
+function barW(id, pct) { const el = document.getElementById(id); if (el) el.style.width = pct + '%'; }
+
+function syncBtn(onId, offId, dotId, isOn) {
+  const on  = document.getElementById(onId);
+  const off = document.getElementById(offId);
+  const dot = document.getElementById(dotId);
+  if (on)  on.className  = 'btn' + (isOn  ? ' on'  : '');
+  if (off) off.className = 'btn' + (!isOn ? ' off' : '');
+  if (dot) dot.className = 'ctrl-dot' + (isOn ? ' on' : '');
+}
+
 function updateUI(data) {
   const s = data.sensors;
-
-  // Sensor values
   set('val-soil',  s.soilPct  + '%');
-  set('val-temp',  s.temp     + '°C');
+  set('val-temp',  s.temp     + 'C');
   set('val-hum',   s.humidity + '%');
   set('val-water', s.waterPct + '%');
-
   barW('bar-soil',  s.soilPct);
   barW('bar-temp',  Math.min(s.temp * 2, 100));
   barW('bar-hum',   s.humidity);
   barW('bar-water', s.waterPct);
 
-  set('sub-soil', s.soilDesc || (s.soilPct < 40 ? 'suchá – potrebuje vodu' : s.soilPct < 70 ? 'optimálna vlhkosť' : 'mokrá'));
-  set('sub-water', s.waterLow ? '⚠ nízka hladina!' : 'nádoba čerpadla');
-  document.getElementById('bar-water').style.background = s.waterLow ? 'var(--red-hi)' : 'var(--green)';
-  set('sub-temp', s.temp > 28 ? '↑ nad prahom (28°C)' : 'vzuch v skleníku');
+  const waterFill = document.getElementById('bar-water');
+  if (waterFill) waterFill.style.background = s.waterLow ? 'var(--red-hi)' : '';
 
-  // Online
   const dot = document.getElementById('status-dot');
   dot.className = 'pulse' + (data.online ? ' online' : '');
   set('status-txt', data.online ? 'online' : 'offline');
@@ -328,80 +798,42 @@ function updateUI(data) {
     set('last-seen', 'posl. ' + d.toLocaleTimeString('sk-SK'));
   }
 
-  // Buttons
-  syncBtn('btn-pump-on', 'btn-pump-off', s.pump);
-  syncBtn('btn-fan-on',  'btn-fan-off',  s.fan);
-  syncBtn('btn-led-on',  'btn-led-off',  s.led);
-  syncBtn('btn-auto-on', 'btn-auto-off', s.auto);
+  syncBtn('btn-pump-on', 'btn-pump-off', 'dot-pump', s.pump);
+  syncBtn('btn-fan-on',  'btn-fan-off',  'dot-fan',  s.fan);
+  syncBtn('btn-led-on',  'btn-led-off',  'dot-led',  s.led);
+  syncBtn('btn-auto-on', 'btn-auto-off', 'dot-auto', s.auto);
 
   if (s.pumpSpeed != null) {
     document.getElementById('pump-speed-slider').value = s.pumpSpeed;
     set('pump-spd-val', s.pumpSpeed + '%');
   }
 
-  // Badges
-  badge('badge-pump',  s.pump,     'čerpadlo beží', 'čerpadlo vyp');
-  badge('badge-fan',   s.fan,      'ventilátor beží','ventilátor vyp');
-  badge('badge-led',   s.led,      'LED zap',        'LED vyp');
-  badge('badge-auto',  s.auto,     'auto zap',       'auto vyp');
-  badgeWarn('badge-water', s.waterLow, '⚠ nízka voda', 'voda ok');
-
-  // Log
   if (data.status_log && data.status_log.length) {
     document.getElementById('log-list').innerHTML =
       data.status_log.slice().reverse().map(e => {
         const t = new Date(e.time).toLocaleTimeString('sk-SK');
-        return `<div class="log-row"><span class="log-t">${t}</span><span class="log-m">${e.status}</span></div>`;
+        return '<div class="log-row"><span class="log-t">'+t+'</span><span class="log-m">'+e.status+'</span></div>';
       }).join('');
   }
-}
-
-function set(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
-function barW(id, pct) { const el = document.getElementById(id); if (el) el.style.width = pct + '%'; }
-
-function syncBtn(onId, offId, isOn) {
-  const on  = document.getElementById(onId);
-  const off = document.getElementById(offId);
-  if (!on || !off) return;
-  on.className  = 'btn' + (isOn  ? ' on'  : '');
-  off.className = 'btn' + (!isOn ? ' off' : '');
-}
-
-function badge(id, active, txtOn, txtOff) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.className = 'badge' + (active ? ' active' : '');
-  el.textContent = active ? txtOn : txtOff;
-}
-
-function badgeWarn(id, warn, txtWarn, txtOk) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.className = 'badge' + (warn ? ' warn' : '');
-  el.textContent = warn ? txtWarn : txtOk;
 }
 
 function updateChart(history) {
   if (!history || !history.length) return;
   const last = history.slice(-30);
   chart.data.labels = last.map(h => new Date(h.time).toLocaleTimeString('sk-SK', {hour:'2-digit',minute:'2-digit'}));
-  
-  chart.data.datasets[0].data = last.map(h => h.temp);
-  chart.data.datasets[1].data = last.map(h => h.soilPct);
+  chart.data.datasets[0].data = last.map(h => h.soilPct);
+  chart.data.datasets[1].data = last.map(h => h.temp);
   chart.data.datasets[2].data = last.map(h => h.humidity);
   chart.data.datasets[3].data = last.map(h => h.waterPct);
-  
   chart.update();
 }
 
-// ── Fetch ──
 async function fetchState() {
   try {
     const r = await fetch(API + '/api/state');
     updateUI(await r.json());
   } catch { document.getElementById('status-dot').className = 'pulse'; }
 }
-
 async function fetchHistory() {
   try {
     const r = await fetch(API + '/api/history');
@@ -409,63 +841,34 @@ async function fetchHistory() {
   } catch {}
 }
 
-// ── Commands ──
 async function cmdLed(on, r, g, b) {
-  // OKAMŽITÁ ZMENA tlačidiel zap/vyp
-  syncBtn('btn-led-on', 'btn-led-off', on);
-  
+  syncBtn('btn-led-on', 'btn-led-off', 'dot-led', on);
+  if (on) window._lastLedColor = { r, g, b };
   const br = parseInt(document.getElementById('brightness-slider').value);
-  try {
-    await fetch(API + `/api/led?on=${on}&r=${r}&g=${g}&b=${b}&brightness=${br}`, { method:'POST' });
-    setTimeout(fetchState, 1000);
-  } catch (e) {
-    console.error("Chyba LED:", e);
-    fetchState();
-  }
+  try { await fetch(API + '/api/led?on='+on+'&r='+r+'&g='+g+'&b='+b+'&brightness='+br, { method:'POST' }); setTimeout(fetchState, 1000); }
+  catch { fetchState(); }
 }
 async function cmdPump(on) {
-  // OKAMŽITÁ ZMENA: prepneme tlačidlá hneď, nečakáme na server
-  syncBtn('btn-pump-on', 'btn-pump-off', on);
-  
+  syncBtn('btn-pump-on', 'btn-pump-off', 'dot-pump', on);
   const spd = parseInt(document.getElementById('pump-speed-slider').value);
-  try {
-    await fetch(API + `/api/pump?on=${on}&speed=${spd}`, { method:'POST' });
-    // Počkáme sekundu, kým skontrolujeme reálny stav z ESP32
-    setTimeout(fetchState, 1000);
-  } catch (e) {
-    console.error("Chyba pumpy:", e);
-    fetchState(); // Ak to zlyhalo, vráti pôvodný stav zo servera
-  }
+  try { await fetch(API + '/api/pump?on='+on+'&speed='+spd, { method:'POST' }); setTimeout(fetchState, 1000); }
+  catch { fetchState(); }
 }
 async function cmdFan(on) {
-  // OKAMŽITÁ ZMENA
-  syncBtn('btn-fan-on', 'btn-fan-off', on);
-  
+  syncBtn('btn-fan-on', 'btn-fan-off', 'dot-fan', on);
   const spd = parseInt(document.getElementById('fan-speed-slider').value);
-  try {
-    await fetch(API + `/api/fan?on=${on}&speed=${spd}`, { method:'POST' });
-    setTimeout(fetchState, 1000);
-  } catch (e) {
-    console.error("Chyba ventilátora:", e);
-    fetchState();
-  }
+  try { await fetch(API + '/api/fan?on='+on+'&speed='+spd, { method:'POST' }); setTimeout(fetchState, 1000); }
+  catch { fetchState(); }
 }
 async function cmdAuto(on) {
-  // OKAMŽITÁ ZMENA
-  syncBtn('btn-auto-on', 'btn-auto-off', on);
-  
-  try {
-    await fetch(API + `/api/auto?on=${on}`, { method:'POST' });
-    setTimeout(fetchState, 1000);
-  } catch (e) {
-    console.error("Chyba Auto-režimu:", e);
-    fetchState();
-  }
+  syncBtn('btn-auto-on', 'btn-auto-off', 'dot-auto', on);
+  try { await fetch(API + '/api/auto?on='+on, { method:'POST' }); setTimeout(fetchState, 1000); }
+  catch { fetchState(); }
 }
 
 fetchState();
 fetchHistory();
-setInterval(fetchState, 3000);
+setInterval(fetchState,   3000);
 setInterval(fetchHistory, 15000);
 </script>
 </body>
