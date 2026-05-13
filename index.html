@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Skleník</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #080d0a;
+  --surface:   #0e1610;
+  --surface2:  #141f16;
+  --surface3:  #1a2a1d;
+  --border:    #1f2e22;
+  --border2:   #263629;
+  --text:      #c8d5c0;
+  --muted:     #5a7060;
+  --faint:     #2e3f30;
+  --green:     #4a8c5c;
+  --green-hi:  #6ab87a;
+  --amber:     #b8864a;
+  --red:       #8c4a4a;
+  --red-hi:    #c96060;
+  --blue:      #4a6e8c;
+  --teal:      #3d7a6e;
+  --radius:    4px;
+  --radius-lg: 8px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  min-height: 100vh;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* ambient background glow */
+body::before {
+  content: '';
+  position: fixed;
+  top: -200px; left: 50%;
+  transform: translateX(-50%);
+  width: 800px; height: 500px;
+  background: radial-gradient(ellipse, rgba(40,80,45,0.18) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── LAYOUT ── */
+.shell {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 36px 28px 60px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── HEADER ── */
+header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 48px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.brand-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: 28px;
+  font-weight: 400;
+  color: #d4e8cc;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+.brand-sub {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  background: var(--surface);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.pulse {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--red);
+  transition: background 0.4s;
+}
+.pulse.online {
+  background: var(--green-hi);
+  box-shadow: 0 0 0 2px rgba(106,184,122,0.2);
+  animation: beat 2.5s ease infinite;
+}
+
+@keyframes beat {
+  0%,100% { box-shadow: 0 0 0 2px rgba(106,184,122,0.2); }
+  50%      { box-shadow: 0 0 0 5px rgba(106,184,122,0.0); }
+}
+
+#last-seen { font-size: 10px; color: var(--faint); }
+
+/* ── SENSOR STRIP ── */
+.sensor-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 32px;
+}
+
+.sensor-cell {
+  background: var(--surface);
+  padding: 22px 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: background 0.2s;
+}
+.sensor-cell:hover { background: var(--surface2); }
+
+.sensor-label {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.sensor-value {
+  font-family: 'DM Serif Display', serif;
+  font-size: 38px;
+  color: #c8e0c0;
+  line-height: 1;
+  font-style: italic;
+}
+
+.sensor-desc {
+  font-size: 10px;
+  color: var(--muted);
+  min-height: 14px;
+}
+
+.thin-bar {
+  height: 2px;
+  background: var(--border2);
+  border-radius: 1px;
+  margin-top: 4px;
+  overflow: hidden;
+}
+.thin-bar-fill {
+  height: 100%;
+  border-radius: 1px;
+  transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+  background: var(--green);
+}
+
+/* ── TWO-COL ── */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 780px) {
+  .two-col { grid-template-columns: 1fr; }
+  .sensor-strip { grid-template-columns: repeat(2,1fr); }
+}
+
+/* ── PANEL ── */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.panel-head {
+  padding: 14px 20px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel-title {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.panel-body { padding: 20px; }
+
+/* ── CHART ── */
+.chart-wrap { height: 180px; position: relative; }
+canvas { width: 100% !important; }
+
+/* ── CONTROLS GRID ── */
+.controls-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+}
+
+.ctrl {
+  background: var(--surface);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ctrl-label {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.toggle-row {
+  display: flex;
+  gap: 6px;
+}
+
+/* pill buttons */
+.btn {
+  padding: 7px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.04em;
+}
+.btn:hover { border-color: var(--muted); color: var(--text); }
+.btn:active { transform: scale(0.97); }
+
+.btn.on  {
+  background: rgba(74,140,92,0.15);
+  border-color: var(--green);
+  color: var(--green-hi);
+}
+.btn.off {
+  background: rgba(140,74,74,0.12);
+  border-color: var(--red);
+  color: var(--red-hi);
+}
+
+/* sliders */
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.slider-lbl { font-size: 9px; color: var(--faint); white-space: nowrap; }
+.slider-val { font-size: 10px; color: var(--muted); min-width: 32px; text-align: right; }
+
+input[type=range] {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 2px;
+  background: var(--border2);
+  border-radius: 1px;
+  outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--green);
+  cursor: pointer;
+  border: 2px solid var(--bg);
+  box-shadow: 0 0 0 1px var(--green);
+}
+
+/* color swatches */
+.swatch-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.swatch {
+  width: 22px; height: 22px;
+  border-radius: 3px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+  opacity: 0.75;
+}
+.swatch:hover, .swatch.sel { border-color: var(--text); opacity: 1; }
+
+/* ── LOG ── */
+.log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 180px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border2) transparent;
+}
+
+.log-row {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 10px;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(31,46,34,0.5);
+}
+.log-row:last-child { border: none; }
+.log-t { font-size: 10px; color: var(--faint); font-variant-numeric: tabular-nums; }
+.log-m { font-size: 11px; color: var(--muted); }
+
+/* ── BADGES ── */
+.badge-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.badge {
+  font-size: 10px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border2);
+  color: var(--faint);
+  letter-spacing: 0.06em;
+}
+.badge.active {
+  border-color: var(--green);
+  color: var(--green-hi);
+  background: rgba(74,140,92,0.08);
+}
+.badge.warn {
+  border-color: var(--red);
+  color: var(--red-hi);
+  background: rgba(140,74,74,0.08);
+}
+
+/* ── NOTE ── */
+.ctrl-note {
+  font-size: 9px;
+  color: var(--faint);
+  line-height: 1.5;
+}
+
+@media (max-width: 520px) {
+  .shell { padding: 20px 16px 40px; }
+  .sensor-value { font-size: 28px; }
+  .controls-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- Header -->
+<header>
+  <div class="brand">
+    <div class="brand-name">Smart Skleník</div>
+    <div class="brand-sub">ESP32 · HiveMQ · FastAPI</div>
+  </div>
+  <div class="header-right">
+    <span id="last-seen">–</span>
+    <div class="status-pill">
+      <div class="pulse" id="status-dot"></div>
+      <span id="status-txt">offline</span>
+    </div>
+  </div>
+</header>
+
+<!-- Active badges -->
+<div class="badge-bar" id="badge-bar">
+  <span class="badge" id="badge-pump">čerpadlo vyp</span>
+  <span class="badge" id="badge-fan">ventilátor vyp</span>
+  <span class="badge" id="badge-led">LED vyp</span>
+  <span class="badge" id="badge-auto">auto vyp</span>
+  <span class="badge" id="badge-water">voda ok</span>
+</div>
+
+<!-- Sensor strip -->
+<div class="sensor-strip">
+  <div class="sensor-cell">
+    <div class="sensor-label">Vlhkosť pôdy</div>
+    <div class="sensor-value" id="val-soil">–</div>
+    <div class="sensor-desc" id="sub-soil">–</div>
+    <div class="thin-bar"><div class="thin-bar-fill" id="bar-soil" style="width:0%"></div></div>
+  </div>
+  <div class="sensor-cell">
+    <div class="sensor-label">Teplota</div>
+    <div class="sensor-value" id="val-temp">–</div>
+    <div class="sensor-desc" id="sub-temp">vzuch v skleníku</div>
+    <div class="thin-bar"><div class="thin-bar-fill" id="bar-temp" style="width:0%;background:var(--amber)"></div></div>
+  </div>
+  <div class="sensor-cell">
+    <div class="sensor-label">Vlhkosť vzduchu</div>
+    <div class="sensor-value" id="val-hum">–</div>
+    <div class="sensor-desc">relatívna vlhkosť</div>
+    <div class="thin-bar"><div class="thin-bar-fill" id="bar-hum" style="width:0%;background:var(--blue)"></div></div>
+  </div>
+  <div class="sensor-cell">
+    <div class="sensor-label">Hladina vody</div>
+    <div class="sensor-value" id="val-water">–</div>
+    <div class="sensor-desc" id="sub-water">nádoba čerpadla</div>
+    <div class="thin-bar"><div class="thin-bar-fill" id="bar-water" style="width:0%"></div></div>
+  </div>
+</div>
+
+<!-- Chart + Log -->
+<div class="two-col">
+  <div class="panel">
+    <div class="panel-head">
+      <span class="panel-title">História · posledných 30 meraní</span>
+    </div>
+    <div class="panel-body">
+      <div class="chart-wrap">
+        <canvas id="chart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <span class="panel-title">Log udalostí</span>
+    </div>
+    <div class="panel-body" style="padding:16px 20px">
+      <div class="log-list" id="log-list">
+        <div class="log-row">
+          <span class="log-t">–</span>
+          <span class="log-m">Čakám na ESP32...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Controls -->
+<div class="panel" style="margin-bottom:16px">
+  <div class="panel-head">
+    <span class="panel-title">Ovládanie</span>
+  </div>
+  <div class="controls-grid">
+
+    <!-- Pump -->
+    <div class="ctrl">
+      <div class="ctrl-label">Čerpadlo</div>
+      <div class="toggle-row">
+        <button class="btn" id="btn-pump-on"  onclick="cmdPump(true)">zapnúť</button>
+        <button class="btn" id="btn-pump-off" onclick="cmdPump(false)">vypnúť</button>
+      </div>
+      <div class="slider-row">
+        <span class="slider-lbl">výkon</span>
+        <input type="range" min="10" max="100" value="100" id="pump-speed-slider"
+               oninput="document.getElementById('pump-spd-val').textContent=this.value+'%'">
+        <span class="slider-val" id="pump-spd-val">100%</span>
+      </div>
+      <div class="ctrl-note">Ak beží ventilátor, príkaz bude odmietnutý</div>
+    </div>
+
+    <!-- Fan -->
+    <div class="ctrl">
+      <div class="ctrl-label">Ventilátor</div>
+      <div class="toggle-row">
+        <button class="btn" id="btn-fan-on"  onclick="cmdFan(true)">zapnúť</button>
+        <button class="btn" id="btn-fan-off" onclick="cmdFan(false)">vypnúť</button>
+      </div>
+      <div class="slider-row">
+        <span class="slider-lbl">rýchlosť</span>
+        <input type="range" min="10" max="100" value="80" id="fan-speed-slider"
+               oninput="document.getElementById('fan-spd-val').textContent=this.value+'%'">
+        <span class="slider-val" id="fan-spd-val">80%</span>
+      </div>
+      <div class="ctrl-note">Ak beží čerpadlo, príkaz bude odmietnutý</div>
+    </div>
+
+    <!-- LED -->
+    <div class="ctrl">
+      <div class="ctrl-label">RGB pásik</div>
+      <div class="toggle-row">
+        <button class="btn" id="btn-led-on"  onclick="cmdLed(true,  0,150,80)">zapnúť</button>
+        <button class="btn" id="btn-led-off" onclick="cmdLed(false, 0,  0, 0)">vypnúť</button>
+      </div>
+      <div class="swatch-row">
+        <div class="swatch" style="background:#4a8c5c" onclick="cmdLed(true,0,140,92)"   title="Zelená"></div>
+        <div class="swatch" style="background:#4a6e8c" onclick="cmdLed(true,59,130,246)" title="Modrá"></div>
+        <div class="swatch" style="background:#b8864a" onclick="cmdLed(true,245,158,11)" title="Jantárová"></div>
+        <div class="swatch" style="background:#8c4a4a" onclick="cmdLed(true,239,68,68)"  title="Červená"></div>
+        <div class="swatch" style="background:#6a5a8c" onclick="cmdLed(true,139,92,246)" title="Fialová"></div>
+        <div class="swatch" style="background:#3d7a6e" onclick="cmdLed(true,20,184,166)" title="Tyrkysová"></div>
+        <div class="swatch" style="background:#9aada0" onclick="cmdLed(true,180,200,180)" title="Biela (eco)"></div>
+      </div>
+      <div class="slider-row">
+        <span class="slider-lbl">jas</span>
+        <input type="range" min="5" max="30" value="20" id="brightness-slider"
+               oninput="document.getElementById('br-val').textContent=this.value+'%'">
+        <span class="slider-val" id="br-val">20%</span>
+      </div>
+    </div>
+
+    <!-- Auto -->
+    <div class="ctrl">
+      <div class="ctrl-label">Auto-režim</div>
+      <div class="toggle-row">
+        <button class="btn" id="btn-auto-on"  onclick="cmdAuto(true)">zapnúť</button>
+        <button class="btn" id="btn-auto-off" onclick="cmdAuto(false)">vypnúť</button>
+      </div>
+      <div class="ctrl-note" style="line-height:1.7">
+        ESP32 automaticky zaleje ak je pôda suchá<br>
+        a spustí ventilátor ak teplota presiahne 28 °C.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</div><!-- /shell -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+// Nastav tu URL svojho Azure App Service po deployi:
+// napr. 'https://smart-sklenik.azurewebsites.net'
+// Prázdny reťazec = ten istý server (funguje keď sa servuje z FastAPI)
+const API = '';
+
+// ── Chart ──
+const chart = new Chart(document.getElementById('chart').getContext('2d'), {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [
+      {
+        label: 'Teplota (°C)',
+        data: [],
+        borderColor: 'rgba(184,134,74,0.8)',
+        backgroundColor: 'rgba(184,134,74,0.05)',
+        tension: 0.5, pointRadius: 0, borderWidth: 1.5, yAxisID: 'y'
+      },
+      {
+        label: 'Vlhkosť pôdy (%)',
+        data: [],
+        borderColor: 'rgba(74,140,92,0.8)',
+        backgroundColor: 'rgba(74,140,92,0.06)',
+        tension: 0.5, pointRadius: 0, borderWidth: 1.5, yAxisID: 'y'
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false, animation: false,
+    plugins: { legend: { labels: { color: '#5a7060', font: { size: 10, family: 'DM Mono' }, boxWidth: 12 } } },
+    scales: {
+      x: { ticks: { color: '#2e3f30', maxTicksLimit: 6, font: { size: 9, family: 'DM Mono' } }, grid: { color: 'rgba(31,46,34,0.6)' } },
+      y: { ticks: { color: '#2e3f30', font: { size: 9, family: 'DM Mono' } }, grid: { color: 'rgba(31,46,34,0.6)' } }
+    }
+  }
+});
+
+// ── UI update ──
+function updateUI(data) {
+  const s = data.sensors;
+
+  // Sensor values
+  set('val-soil',  s.soilPct  + '%');
+  set('val-temp',  s.temp     + '°C');
+  set('val-hum',   s.humidity + '%');
+  set('val-water', s.waterPct + '%');
+
+  barW('bar-soil',  s.soilPct);
+  barW('bar-temp',  Math.min(s.temp * 2, 100));
+  barW('bar-hum',   s.humidity);
+  barW('bar-water', s.waterPct);
+
+  set('sub-soil', s.soilDesc || (s.soilPct < 40 ? 'suchá – potrebuje vodu' : s.soilPct < 70 ? 'optimálna vlhkosť' : 'mokrá'));
+  set('sub-water', s.waterLow ? '⚠ nízka hladina!' : 'nádoba čerpadla');
+  document.getElementById('bar-water').style.background = s.waterLow ? 'var(--red-hi)' : 'var(--green)';
+  set('sub-temp', s.temp > 28 ? '↑ nad prahom (28°C)' : 'vzuch v skleníku');
+
+  // Online
+  const dot = document.getElementById('status-dot');
+  dot.className = 'pulse' + (data.online ? ' online' : '');
+  set('status-txt', data.online ? 'online' : 'offline');
+  if (data.last_seen) {
+    const d = new Date(data.last_seen);
+    set('last-seen', 'posl. ' + d.toLocaleTimeString('sk-SK'));
+  }
+
+  // Buttons
+  syncBtn('btn-pump-on', 'btn-pump-off', s.pump);
+  syncBtn('btn-fan-on',  'btn-fan-off',  s.fan);
+  syncBtn('btn-led-on',  'btn-led-off',  s.led);
+  syncBtn('btn-auto-on', 'btn-auto-off', s.auto);
+
+  if (s.pumpSpeed != null) {
+    document.getElementById('pump-speed-slider').value = s.pumpSpeed;
+    set('pump-spd-val', s.pumpSpeed + '%');
+  }
+
+  // Badges
+  badge('badge-pump',  s.pump,     'čerpadlo beží', 'čerpadlo vyp');
+  badge('badge-fan',   s.fan,      'ventilátor beží','ventilátor vyp');
+  badge('badge-led',   s.led,      'LED zap',        'LED vyp');
+  badge('badge-auto',  s.auto,     'auto zap',       'auto vyp');
+  badgeWarn('badge-water', s.waterLow, '⚠ nízka voda', 'voda ok');
+
+  // Log
+  if (data.status_log && data.status_log.length) {
+    document.getElementById('log-list').innerHTML =
+      data.status_log.slice().reverse().map(e => {
+        const t = new Date(e.time).toLocaleTimeString('sk-SK');
+        return `<div class="log-row"><span class="log-t">${t}</span><span class="log-m">${e.status}</span></div>`;
+      }).join('');
+  }
+}
+
+function set(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
+function barW(id, pct) { const el = document.getElementById(id); if (el) el.style.width = pct + '%'; }
+
+function syncBtn(onId, offId, isOn) {
+  const on  = document.getElementById(onId);
+  const off = document.getElementById(offId);
+  if (!on || !off) return;
+  on.className  = 'btn' + (isOn  ? ' on'  : '');
+  off.className = 'btn' + (!isOn ? ' off' : '');
+}
+
+function badge(id, active, txtOn, txtOff) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.className = 'badge' + (active ? ' active' : '');
+  el.textContent = active ? txtOn : txtOff;
+}
+
+function badgeWarn(id, warn, txtWarn, txtOk) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.className = 'badge' + (warn ? ' warn' : '');
+  el.textContent = warn ? txtWarn : txtOk;
+}
+
+function updateChart(history) {
+  if (!history || !history.length) return;
+  const last = history.slice(-30);
+  chart.data.labels = last.map(h => new Date(h.time).toLocaleTimeString('sk-SK', {hour:'2-digit',minute:'2-digit'}));
+  chart.data.datasets[0].data = last.map(h => h.temp);
+  chart.data.datasets[1].data = last.map(h => h.soilPct);
+  chart.update();
+}
+
+// ── Fetch ──
+async function fetchState() {
+  try {
+    const r = await fetch(API + '/api/state');
+    updateUI(await r.json());
+  } catch { document.getElementById('status-dot').className = 'pulse'; }
+}
+
+async function fetchHistory() {
+  try {
+    const r = await fetch(API + '/api/history');
+    updateChart((await r.json()).history);
+  } catch {}
+}
+
+// ── Commands ──
+async function cmdLed(on, r, g, b) {
+  const br = parseInt(document.getElementById('brightness-slider').value);
+  await fetch(API + `/api/led?on=${on}&r=${r}&g=${g}&b=${b}&brightness=${br}`, { method:'POST' });
+  setTimeout(fetchState, 600);
+}
+async function cmdPump(on) {
+  const spd = parseInt(document.getElementById('pump-speed-slider').value);
+  await fetch(API + `/api/pump?on=${on}&speed=${spd}`, { method:'POST' });
+  setTimeout(fetchState, 400);
+}
+async function cmdFan(on) {
+  const spd = parseInt(document.getElementById('fan-speed-slider').value);
+  await fetch(API + `/api/fan?on=${on}&speed=${spd}`, { method:'POST' });
+  setTimeout(fetchState, 400);
+}
+async function cmdAuto(on) {
+  await fetch(API + `/api/auto?on=${on}`, { method:'POST' });
+  setTimeout(fetchState, 400);
+}
+
+fetchState();
+fetchHistory();
+setInterval(fetchState, 3000);
+setInterval(fetchHistory, 15000);
+</script>
+</body>
+</html>
