@@ -344,9 +344,26 @@ String soilDescription(int raw) {
   return "Mokra";
 }
 
+// Median filter – vyhodi spike hodnoty spossobene motorom/ventilatorom.
+// Zoberie N samplov, zoradi ich a vrati prostredny.
+int analogReadMedian(uint8_t pin, int samples = 7) {
+  int buf[samples];
+  for (int i = 0; i < samples; i++) {
+    buf[i] = analogRead(pin);
+    delayMicroseconds(200);  // krátka pauza medzi samplami
+  }
+  // insertion sort (male N, rychle)
+  for (int i = 1; i < samples; i++) {
+    int key = buf[i], j = i - 1;
+    while (j >= 0 && buf[j] > key) { buf[j+1] = buf[j]; j--; }
+    buf[j+1] = key;
+  }
+  return buf[samples / 2];
+}
+
 void readSensors() {
-  state.soilMoisture = analogRead(PIN_SOIL_MOISTURE);
-  state.waterLevel   = analogRead(PIN_WATER_LEVEL);
+  state.soilMoisture = analogReadMedian(PIN_SOIL_MOISTURE);
+  state.waterLevel   = analogReadMedian(PIN_WATER_LEVEL);
 
   float temperature = dht.readTemperature();
   float humidity = dht.readHumidity();
