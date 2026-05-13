@@ -1,0 +1,5 @@
+# Zoznam pre FastAPI projekt
+fastapi==0.115.0
+uvicorn==0.31.0
+paho-mqtt==1.6.1
+gunicorn==23.0.0
