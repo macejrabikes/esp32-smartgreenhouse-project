@@ -4,7 +4,7 @@
   =====================================================
   Komponenty:
     - Senzor vlhkosti pôdy            → GPIO35
-    - DHT11 (teplota/vlhkosť vzduchu) → GPIO14  (ZMENENÉ z GPIO15 – strapping pin!)
+    - DHT11 (teplota/vlhkosť vzduchu) → GPIO13
     - Senzor hladiny vody             → GPIO32
     - Relé (čerpadlo)                 → GPIO25
     - Motor/ventilátor (PWM)          → GPIO26
@@ -26,9 +26,7 @@
 #include <FastLED.h>
 #include <ArduinoJson.h>
 
-// =====================================================
 // KONFIGURÁCIA
-// =====================================================
 const char* WIFI_SSID   = "Nothing";
 const char* WIFI_PASS   = "pepesko123";
 
@@ -78,14 +76,13 @@ const char* MQTT_CLIENT = "SmartGreenhouse_ESP32_001";
 #define FAN_MAX_RUN      30000
 
 // GLOBÁLNE OBJEKTY
-DHT dht(13, DHT11);
+DHT dht(PIN_DHT, DHT11);
 CRGB leds[LED_COUNT];
 WiFiClientSecure wifiClient;
 PubSubClient mqtt(wifiClient);
 
-// =====================================================
 // STAV SYSTÉMU
-// =====================================================
+// 
 struct SystemState {
   int   soilMoisture = 0;
   int   waterLevel   = 0;
@@ -108,10 +105,7 @@ struct SystemState {
 
 unsigned long lastReconnectAttempt = 0;
 
-// =====================================================
 // FORWARD DECLARATIONS
-// OPRAVA: default parameter (= 255) len tu, NIE aj v definícii funkcie
-// =====================================================
 void connectWiFi();
 void connectMQTT();
 void readSensors();
@@ -162,9 +156,7 @@ void setup() {
   Serial.println("Systém pripravený!");
 }
 
-// =====================================================
 // HLAVNÁ SLUČKA
-// =====================================================
 void loop() {
   yield();
 
