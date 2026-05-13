@@ -101,7 +101,14 @@ struct SystemState {
   // Duty cycle stav (non-blocking software PWM pre pumpu)
   bool  pumpPhysical    = false;  // skutočný stav relé
   unsigned long pumpDutyTick = 0; // čas začiatku aktuálnej fázy
+  // Soft-start ventilatora
+  bool  fanSoftStarting  = false; // prebieha soft-start?
+  unsigned long fanSoftStartBegin = 0; // kedy sa zacal
+  uint8_t fanTargetSpeed = 255;   // cielova PWM po soft-starte
 } state;
+
+// Dlzka full-power fazy pri starte [ms]
+#define FAN_SOFTSTART_MS  800
 
 unsigned long lastReconnectAttempt = 0;
 
@@ -213,6 +220,16 @@ void loop() {
   if (state.fanOn && (now - state.fanStartTime >= FAN_MAX_RUN)) {
     setFan(false);
     publishStatus("fan_timeout");
+  }
+
+  // Soft-start: po FAN_SOFTSTART_MS prepni na cielovu rychlost
+  if (state.fanSoftStarting && state.fanOn &&
+      (now - state.fanSoftStartBegin >= FAN_SOFTSTART_MS)) {
+    state.fanSoftStarting = false;
+    state.fanSpeed = state.fanTargetSpeed;
+    ledcWrite(PIN_MOTOR_FAN, state.fanTargetSpeed);
+    Serial.printf("Ventilator: soft-start hotovy, rychlost=%d (%d%%)\n",
+                  state.fanTargetSpeed, map(state.fanTargetSpeed, 0, 255, 0, 100));
   }
 }
 
@@ -433,14 +450,17 @@ void setFan(bool on, uint8_t speed) {
   }
   state.fanOn = on;
   if (on) {
-uint8_t realSpeed = map(speed, 0, 255, 180, 255); 
-    state.fanSpeed = speed; 
-    
-    ledcWrite(PIN_MOTOR_FAN, realSpeed);
-    state.fanStartTime = millis();
-    Serial.printf("Ventilator: ZAP (Vstup:%d%%, Realny PWM:%d)\n", map(speed, 0, 255, 0, 100), realSpeed);
+    state.fanTargetSpeed   = speed;   // uloz ciel
+    state.fanSpeed         = 255;     // fyzicky zacni na plny vykon
+    state.fanSoftStarting  = true;
+    state.fanSoftStartBegin = millis();
+    state.fanStartTime      = millis();
+    ledcWrite(PIN_MOTOR_FAN, 255);    // FULL po dobu FAN_SOFTSTART_MS
+    Serial.printf("Ventilator: ZAP soft-start (ciel PWM:%d = %d%%)\n",
+                  speed, map(speed, 0, 255, 0, 100));
   } else {
     ledcWrite(PIN_MOTOR_FAN, 0);
+    state.fanSoftStarting = false;
     Serial.println("Ventilator: VYP");
   }
 }
